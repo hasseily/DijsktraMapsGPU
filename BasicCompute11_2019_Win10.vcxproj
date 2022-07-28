@@ -440,6 +440,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CSMain</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">CSMain</EntryPointName>
     </None>
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

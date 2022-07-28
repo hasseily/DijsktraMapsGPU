@@ -13,5 +13,6 @@
     <None Include="DijkstraGPU.hlsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="README.md" />
   </ItemGroup>
 </Project>

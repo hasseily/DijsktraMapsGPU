@@ -1,11 +1,7 @@
 //--------------------------------------------------------------------------------------
-// File: BasicCompute11.cpp
-//
-// Demonstrates the basics to get DirectX 11 Compute Shader (aka DirectCompute) up and
-// running by implementing Array A + Array B
-//
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License (MIT).
+// Dijkstra Maps using a GPU compute shader.
+// Based off of the DX11 Microsoft sample BasicCompute11.cpp.
+// A lot of the code in here can be removed and is unnecessary. This is test code.
 //--------------------------------------------------------------------------------------
 
 #include <stdio.h>
