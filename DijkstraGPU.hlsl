@@ -42,7 +42,7 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
         return;
     w0 = wOld;
     // columns wrap
-    if (x < MWIDTH)
+    if (x < (MWIDTH - 1))
         w0 = min(w0, BufferOut[y * MWIDTH + x + 1].map1 + Buffer0[DTid.x].i + 1);
     else
         w0 = min(w0, BufferOut[y * MWIDTH + 0].map1 + Buffer0[DTid.x].i + 1);
@@ -51,7 +51,7 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
     else
         w0 = min(w0, BufferOut[y * MWIDTH + MWIDTH - 1].map1 + Buffer0[DTid.x].i + 1);
     // rows don't wrap so don't do the edges
-    if (y < (MHEIGHT - 1))
+    if (y < (MHEIGHT - 2))
         w0 = min(w0, BufferOut[(y + 1) * MWIDTH + x].map1 + Buffer0[DTid.x].i + 1);
     if (y > 0)
         w0 = min(w0, BufferOut[(y - 1) * MWIDTH + x].map1 + Buffer0[DTid.x].i + 1);
@@ -64,7 +64,7 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
         return;
     w0 = wOld;
     // columns wrap
-    if (x < MWIDTH)
+    if (x < (MWIDTH - 1))
         w0 = min(w0, BufferOut[y * MWIDTH + x + 1].map2 + Buffer0[DTid.x].i + 1);
     else
         w0 = min(w0, BufferOut[y * MWIDTH + 0].map2 + Buffer0[DTid.x].i + 1);
@@ -73,7 +73,7 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
     else
         w0 = min(w0, BufferOut[y * MWIDTH + MWIDTH - 1].map2 + Buffer0[DTid.x].i + 1);
     // rows don't wrap so don't do the edges
-    if (y < (MHEIGHT - 1))
+    if (y < (MHEIGHT - 2))
         w0 = min(w0, BufferOut[(y + 1) * MWIDTH + x].map2 + Buffer0[DTid.x].i + 1);
     if (y > 0)
         w0 = min(w0, BufferOut[(y - 1) * MWIDTH + x].map2 + Buffer0[DTid.x].i + 1);
@@ -86,7 +86,7 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
         return;
     w0 = wOld;
     // columns wrap
-    if (x < MWIDTH)
+    if (x < (MWIDTH - 1))
         w0 = min(w0, BufferOut[y * MWIDTH + x + 1].map3 + Buffer0[DTid.x].i + 1);
     else
         w0 = min(w0, BufferOut[y * MWIDTH + 0].map3 + Buffer0[DTid.x].i + 1);
@@ -95,7 +95,7 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
     else
         w0 = min(w0, BufferOut[y * MWIDTH + MWIDTH - 1].map3 + Buffer0[DTid.x].i + 1);
     // rows don't wrap so don't do the edges
-    if (y < (MHEIGHT - 1))
+    if (y < (MHEIGHT - 2))
         w0 = min(w0, BufferOut[(y + 1) * MWIDTH + x].map3 + Buffer0[DTid.x].i + 1);
     if (y > 0)
         w0 = min(w0, BufferOut[(y - 1) * MWIDTH + x].map3 + Buffer0[DTid.x].i + 1);

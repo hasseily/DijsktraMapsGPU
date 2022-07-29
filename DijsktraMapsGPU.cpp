@@ -249,7 +249,7 @@ int __cdecl main()
 #endif
 
 			ID3D11ShaderResourceView* aRViews[1] = { g_pBuf0SRV };
-			for (size_t iters = 0; iters < 30; iters++)
+			for (size_t iters = 0; iters < 50; iters++)
 			{
 				RunComputeShader(g_pContext, g_pCS, 1, aRViews, nullptr, nullptr, 0, g_pBufResultUAV, NUM_ELEMENTS, 1, 1);
 			}
@@ -320,7 +320,7 @@ int __cdecl main()
 
     printf( "Running Compute Shader..." );
     ID3D11ShaderResourceView* aRViews[1] = { g_pBuf0SRV };
-    for (size_t iters = 0; iters < 30; iters++)
+    for (size_t iters = 0; iters < 50; iters++)
     {
 		RunComputeShader(g_pContext, g_pCS, 1, aRViews, nullptr, nullptr, 0, g_pBufResultUAV, NUM_ELEMENTS, 1, 1);
     }
