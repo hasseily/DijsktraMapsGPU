@@ -203,15 +203,8 @@ int __cdecl main()
     SetGoalMap1(28, 9);
     SetGoalMap1(15, 23);
     SetGoalMap1(10, 5);
-	
-	SetGoalMap2(28, 9);
-	SetGoalMap2(15, 23);
-	SetGoalMap2(10, 5);
-	SetGoalMap3(28, 9);
-	SetGoalMap3(15, 23);
-	SetGoalMap3(10, 5);
 
-    /*
+    
     SetGoalMap2(13, 7);
 	SetGoalMap2(1, 30);
 
@@ -219,7 +212,7 @@ int __cdecl main()
 	SetGoalMap3(11, 5);
 	SetGoalMap3(11, 6);
 	SetGoalMap3(10, 5);
-	*/
+	
     printf("done\n");
 
 
