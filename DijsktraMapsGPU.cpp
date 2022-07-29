@@ -128,7 +128,7 @@ int __cdecl main()
     // A firewall that adds 4 to the step costs,
     // and impassable walls that are set at 9.
     // Walls are hard-coded to be value 9.
-	MapMatrix tmp_m = {
+	constexpr MapMatrix tmp_m = {
 			{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -336,7 +336,7 @@ int __cdecl main()
 			// for (int x = -1; x <= MAPW; x++) {	// to add vertical walls
 			for (int x = 0; x < MAPW; x++) {		// no vertical walls
                 const int xy = y * MAPW + x;
-				if (x < 0 || y < 0 || x >(MAPW - 1) || y >(MAPH - 1) || g_vBuf1[xy].i == W_WALL)
+				if (x < 0 || y < 0 || x >(MAPW - 1) || y >(MAPH - 1) || p[xy].i == W_WALL)
 					std::cout << char(0xdb) << char(0xdb) << char(0xdb) << char(0xdb);	// Draw walls
 				else if (p[xy].i > 0)
 				{
