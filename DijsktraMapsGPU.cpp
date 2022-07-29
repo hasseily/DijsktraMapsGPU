@@ -16,11 +16,7 @@
 #define SAFE_RELEASE(p)      { if (p) { (p)->Release(); (p)=nullptr; } }
 #endif
 
-// Comment out the following line to use raw buffers instead of structured buffers
 #define USE_STRUCTURED_BUFFERS
-
-// If defined, then the hardware/driver must report support for double-precision CS 5.0 shaders or the sample fails to run
-// #define TEST_DOUBLE
 
 // Map size
 constexpr int MAPW = 32;
@@ -31,15 +27,24 @@ using MapMatrix = char[MAPW][MAPH];
 // The number of elements in a buffer to be tested
 constexpr UINT NUM_ELEMENTS = MAPW * MAPH;
 
-struct BufType
+struct RBuf
 {
-	int i;
+    int i;
 };
-BufType g_vBuf0[NUM_ELEMENTS];
-BufType g_vBuf1[NUM_ELEMENTS];
+
+struct RWBuf
+{
+	int map1;
+    int map2;
+    int map3;
+};
+RBuf g_vBuf0[NUM_ELEMENTS];
+RWBuf g_vBuf1[NUM_ELEMENTS];
 
 // Goals are set to 0 on the map
-#define SetGoal(x, y) g_vBuf1[y * MAPW + x].i = 0
+#define SetGoalMap1(x, y) g_vBuf1[y * MAPW + x].map1 = 0
+#define SetGoalMap2(x, y) g_vBuf1[y * MAPW + x].map2 = 0
+#define SetGoalMap3(x, y) g_vBuf1[y * MAPW + x].map3 = 0
 
 #define W_WALL 10000    // Value of the wall tile
 
@@ -174,7 +179,7 @@ int __cdecl main()
 	{
 		for (int i = 0; i < MAPW; i++)
 		{
-			g_vBuf0[j * MAPW + i].i = tmp_m[j][i];
+			g_vBuf0[j * MAPW + i].i = tmp_m[j][i];  // read-only movement buffer
 			switch (g_vBuf0[j * MAPW + i].i)
 			{
 			case 9:		// wall
@@ -186,15 +191,36 @@ int __cdecl main()
 				dmapVal = W_WALL - 1;   // very high number
 				break;
 			}
-            g_vBuf1[j * MAPW + i].i = dmapVal;
+            // Now set the values of the maps.
+            // Here the maps are exactly the same for testing
+            g_vBuf1[j * MAPW + i].map1 = dmapVal;
+            g_vBuf1[j * MAPW + i].map2 = dmapVal;
+            g_vBuf1[j * MAPW + i].map3 = dmapVal;
 		}
 	};
     // Set goals on the map by entering value 0 on a tile
     // You can set as many as you want
-    SetGoal(28, 9);
-    SetGoal(15, 23);
-    SetGoal(10, 5);
-	printf("done\n");
+    SetGoalMap1(28, 9);
+    SetGoalMap1(15, 23);
+    SetGoalMap1(10, 5);
+	
+	SetGoalMap2(28, 9);
+	SetGoalMap2(15, 23);
+	SetGoalMap2(10, 5);
+	SetGoalMap3(28, 9);
+	SetGoalMap3(15, 23);
+	SetGoalMap3(10, 5);
+
+    /*
+    SetGoalMap2(13, 7);
+	SetGoalMap2(1, 30);
+
+	SetGoalMap3(10, 6);
+	SetGoalMap3(11, 5);
+	SetGoalMap3(11, 6);
+	SetGoalMap3(10, 5);
+	*/
+    printf("done\n");
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -209,16 +235,9 @@ int __cdecl main()
 
 		for (int a = 0; a < timingIters; a++)
 		{
-#ifdef USE_STRUCTURED_BUFFERS
-			CreateStructuredBuffer(g_pDevice, sizeof(BufType), NUM_ELEMENTS, &g_vBuf0[0], &g_pBuf0);
+			CreateStructuredBuffer(g_pDevice, sizeof(RBuf), NUM_ELEMENTS, &g_vBuf0[0], &g_pBuf0);
 			// Initialize result buffer with the starting goals, max weights and walls.
-			CreateStructuredBuffer(g_pDevice, sizeof(BufType), NUM_ELEMENTS, &g_vBuf1[0], &g_pBufResult);
-#else
-			// Initialize the read-only buffer with the movement cost
-			CreateRawBuffer(g_pDevice, NUM_ELEMENTS * sizeof(BufType), &g_vBuf0[0], &g_pBuf0);
-			// Initialize result buffer with the starting goals, max weights and walls.
-			CreateRawBuffer(g_pDevice, NUM_ELEMENTS * sizeof(BufType), &g_vBuf1[0], &g_pBufResult);
-#endif
+			CreateStructuredBuffer(g_pDevice, sizeof(RWBuf), NUM_ELEMENTS, &g_vBuf1[0], &g_pBufResult);
 
 #if defined(_DEBUG) || defined(PROFILE)
 			if (g_pBuf0)
@@ -246,12 +265,12 @@ int __cdecl main()
 			{
 				ID3D11Buffer* debugbuf = CreateAndCopyToDebugBuf(g_pDevice, g_pContext, g_pBufResult);
 				D3D11_MAPPED_SUBRESOURCE MappedResource;
-				BufType* p;
+				RWBuf* p;
 				g_pContext->Map(debugbuf, 0, D3D11_MAP_READ, 0, &MappedResource);
 
 				// Set a break point here and put down the expression "p, 1024" in your watch window to see what has been written out by our CS
 				// This is also a common trick to debug CS programs.
-				p = (BufType*)MappedResource.pData;
+				p = (RWBuf*)MappedResource.pData;
 
 				g_pContext->Unmap(debugbuf, 0);
 
@@ -279,16 +298,10 @@ int __cdecl main()
 // Single run here with output
 
     printf("Assigning GPU buffers...");
-#ifdef USE_STRUCTURED_BUFFERS
-    CreateStructuredBuffer( g_pDevice, sizeof(BufType), NUM_ELEMENTS, &g_vBuf0[0], &g_pBuf0 );
+    // Initialize read-only steps weights buffer
+    CreateStructuredBuffer( g_pDevice, sizeof(RBuf), NUM_ELEMENTS, &g_vBuf0[0], &g_pBuf0 );
 	// Initialize result buffer with the starting goals, max weights and walls.
-    CreateStructuredBuffer( g_pDevice, sizeof(BufType), NUM_ELEMENTS, &g_vBuf1[0], &g_pBufResult );
-#else
-    // Initialize the read-only buffer with the movement cost
-    CreateRawBuffer( g_pDevice, NUM_ELEMENTS * sizeof(BufType), &g_vBuf0[0], &g_pBuf0 );
-    // Initialize result buffer with the starting goals, max weights and walls.
-    CreateRawBuffer( g_pDevice, NUM_ELEMENTS * sizeof(BufType), &g_vBuf1[0], &g_pBufResult );
-#endif
+    CreateStructuredBuffer( g_pDevice, sizeof(RWBuf), NUM_ELEMENTS, &g_vBuf1[0], &g_pBufResult );
 
 #if defined(_DEBUG) || defined(PROFILE)
     if ( g_pBuf0 )
@@ -324,24 +337,25 @@ int __cdecl main()
     {
         ID3D11Buffer* debugbuf = CreateAndCopyToDebugBuf( g_pDevice, g_pContext, g_pBufResult );
         D3D11_MAPPED_SUBRESOURCE MappedResource; 
-        BufType *p;
+        RWBuf *p;
         g_pContext->Map( debugbuf, 0, D3D11_MAP_READ, 0, &MappedResource );
 
         // Set a break point here and put down the expression "p, 1024" in your watch window to see what has been written out by our CS
         // This is also a common trick to debug CS programs.
-        p = (BufType*)MappedResource.pData;
+        p = (RWBuf*)MappedResource.pData;
 
         // Draw results
+        std::cout << " ===< MAP 1 >===" << std::endl;
 		for (int y = -1; y <= MAPH; y++) {
 			// for (int x = -1; x <= MAPW; x++) {	// to add vertical walls
 			for (int x = 0; x < MAPW; x++) {		// no vertical walls
                 const int xy = y * MAPW + x;
-				if (x < 0 || y < 0 || x >(MAPW - 1) || y >(MAPH - 1) || g_vBuf1[xy].i == W_WALL)
+				if (x < 0 || y < 0 || x >(MAPW - 1) || y >(MAPH - 1) || p[xy].map1 == W_WALL)
 					std::cout << char(0xdb) << char(0xdb) << char(0xdb) << char(0xdb);	// Draw walls
-				else if (p[xy].i > 0)
+				else if (p[xy].map1 > 0)
 				{
 					char buf[30];
-					sprintf_s(buf, "%4d", p[xy].i);
+					sprintf_s(buf, "%4d", p[xy].map1);
 					if (g_vBuf0[xy].i == 1)	// door
 						std::cout << "\033[1;44m" << buf << "\033[0m";      // bg blue
 					else if (g_vBuf0[xy].i == 4)	// fire wall
@@ -350,9 +364,75 @@ int __cdecl main()
                         std::cout << "\033[1;45m" << buf << "\033[0m";      // bg purple
 					else
 					{
-						if (p[xy].i > 14)
+						if (p[xy].map1 > 14)
 							std::cout << "\033[1;31m" << buf << "\033[0m";  // red
-						else if (p[xy].i > 9)
+						else if (p[xy].map1 > 9)
+							std::cout << "\033[1;33m" << buf << "\033[0m";  // yellow
+						else
+							std::cout << "\033[1;32m" << buf << "\033[0m";  // green
+					}
+				}
+				else {	// goal
+					std::cout << "\033[1;42m" << "GOAL" << "\033[0m";       // bg green
+				}
+			}
+			std::cout << "\n";
+		}
+		std::cout << " ===< MAP 2 >===" << std::endl;
+		for (int y = -1; y <= MAPH; y++) {
+			// for (int x = -1; x <= MAPW; x++) {	// to add vertical walls
+			for (int x = 0; x < MAPW; x++) {		// no vertical walls
+				const int xy = y * MAPW + x;
+				if (x < 0 || y < 0 || x >(MAPW - 1) || y >(MAPH - 1) || p[xy].map2 == W_WALL)
+					std::cout << char(0xdb) << char(0xdb) << char(0xdb) << char(0xdb);	// Draw walls
+				else if (p[xy].map2 > 0)
+				{
+					char buf[30];
+					sprintf_s(buf, "%4d", p[xy].map2);
+					if (g_vBuf0[xy].i == 1)	// door
+						std::cout << "\033[1;44m" << buf << "\033[0m";      // bg blue
+					else if (g_vBuf0[xy].i == 4)	// fire wall
+						std::cout << "\033[1;41m" << buf << "\033[0m";      // bg red
+					else if (g_vBuf0[xy].i > 0)     // Something else that we don't know about
+						std::cout << "\033[1;45m" << buf << "\033[0m";      // bg purple
+					else
+					{
+						if (p[xy].map2 > 14)
+							std::cout << "\033[1;31m" << buf << "\033[0m";  // red
+						else if (p[xy].map2 > 9)
+							std::cout << "\033[1;33m" << buf << "\033[0m";  // yellow
+						else
+							std::cout << "\033[1;32m" << buf << "\033[0m";  // green
+					}
+				}
+				else {	// goal
+					std::cout << "\033[1;42m" << "GOAL" << "\033[0m";       // bg green
+				}
+			}
+			std::cout << "\n";
+		}
+		std::cout << " ===< MAP 3 >===" << std::endl;
+		for (int y = -1; y <= MAPH; y++) {
+			// for (int x = -1; x <= MAPW; x++) {	// to add vertical walls
+			for (int x = 0; x < MAPW; x++) {		// no vertical walls
+				const int xy = y * MAPW + x;
+				if (x < 0 || y < 0 || x >(MAPW - 1) || y >(MAPH - 1) || p[xy].map3 == W_WALL)
+					std::cout << char(0xdb) << char(0xdb) << char(0xdb) << char(0xdb);	// Draw walls
+				else if (p[xy].map3 > 0)
+				{
+					char buf[30];
+					sprintf_s(buf, "%4d", p[xy].map3);
+					if (g_vBuf0[xy].i == 1)	// door
+						std::cout << "\033[1;44m" << buf << "\033[0m";      // bg blue
+					else if (g_vBuf0[xy].i == 4)	// fire wall
+						std::cout << "\033[1;41m" << buf << "\033[0m";      // bg red
+					else if (g_vBuf0[xy].i > 0)     // Something else that we don't know about
+						std::cout << "\033[1;45m" << buf << "\033[0m";      // bg purple
+					else
+					{
+						if (p[xy].map3 > 14)
+							std::cout << "\033[1;31m" << buf << "\033[0m";  // red
+						else if (p[xy].map3 > 9)
 							std::cout << "\033[1;33m" << buf << "\033[0m";  // yellow
 						else
 							std::cout << "\033[1;32m" << buf << "\033[0m";  // green
@@ -515,13 +595,7 @@ HRESULT CreateComputeShader( LPCWSTR pSrcFile, LPCSTR pFunctionName,
 
     const D3D_SHADER_MACRO defines[] = 
     {
-#ifdef USE_STRUCTURED_BUFFERS
         "USE_STRUCTURED_BUFFERS", "1",
-#endif
-
-#ifdef TEST_DOUBLE
-        "TEST_DOUBLE", "1",
-#endif
         nullptr, nullptr
     };
 
