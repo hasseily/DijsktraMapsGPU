@@ -17,7 +17,7 @@ RWStructuredBuffer<BufType> BufferOut : register(u0);
 // ByteAddressBuffer Buffer0 : register(t0);
 // RWByteAddressBuffer BufferOut : register(u0);
 
-#define W_WALL 100
+#define W_WALL 10000
 #define MWIDTH 32   // map width
 #define MHEIGHT 32  // map height
 
@@ -31,7 +31,7 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
         return;
     int w0 = wOld;
     // columns wrap
-    if (x < MWIDTH)
+    if (x < MWIDTH - 1)
         w0 = min(w0, BufferOut[y * MWIDTH + x + 1].i + Buffer0[DTid.x].i + 1);
     else
         w0 = min(w0, BufferOut[y * MWIDTH + 0].i + Buffer0[DTid.x].i + 1);
@@ -40,7 +40,7 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
     else
         w0 = min(w0, BufferOut[y * MWIDTH + MWIDTH - 1].i + Buffer0[DTid.x].i + 1);
     // rows don't wrap so don't do the edges
-    if (y < (MHEIGHT - 1))
+    if (y < (MHEIGHT - 2))
         w0 = min(w0, BufferOut[(y + 1) * MWIDTH + x].i + Buffer0[DTid.x].i + 1);
     if (y > 0)
         w0 = min(w0, BufferOut[(y - 1) * MWIDTH + x].i + Buffer0[DTid.x].i + 1);
